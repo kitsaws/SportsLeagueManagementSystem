@@ -1,0 +1,501 @@
+-- DDL: Create Tables with Constraints
+
+-- League Table
+CREATE TABLE League (
+    league_id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    CONSTRAINT chk_dates CHECK (end_date >= start_date)
+);
+
+-- Sport Table
+CREATE TABLE Sport (
+    sport_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Team Table
+CREATE TABLE Team (
+    team_id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    sport_id INTEGER NOT NULL,
+    league_id INTEGER NOT NULL,
+    home_campus VARCHAR(100),
+    CONSTRAINT fk_team_sport FOREIGN KEY (sport_id) REFERENCES Sport(sport_id),
+    CONSTRAINT fk_team_league FOREIGN KEY (league_id) REFERENCES League(league_id),
+    CONSTRAINT uk_team_name_league UNIQUE (name, league_id)
+);
+
+-- Coach Table
+CREATE TABLE Coach (
+    coach_id INTEGER PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    sport_id INTEGER NOT NULL,
+    team_id INTEGER NOT NULL,
+    CONSTRAINT fk_coach_sport FOREIGN KEY (sport_id) REFERENCES Sport(sport_id),
+    CONSTRAINT fk_coach_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
+    CONSTRAINT uk_coach_team UNIQUE (team_id) -- One coach per team
+);
+
+-- Player Table
+CREATE TABLE Player (
+    player_id INTEGER PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    student_id VARCHAR(20) NOT NULL UNIQUE,
+    age INTEGER NOT NULL CHECK (age >= 16 AND age <= 30),
+    team_id INTEGER NOT NULL,
+    CONSTRAINT fk_player_team FOREIGN KEY (team_id) REFERENCES Team(team_id)
+);
+
+-- Match Table
+CREATE TABLE Match (
+    match_id INTEGER PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    sport_id INTEGER NOT NULL,
+    home_team_id INTEGER NOT NULL,
+    away_team_id INTEGER NOT NULL,
+    match_date DATE NOT NULL,
+    venue VARCHAR(100) NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('Scheduled', 'Completed', 'Cancelled')),
+    CONSTRAINT fk_match_league FOREIGN KEY (league_id) REFERENCES League(league_id),
+    CONSTRAINT fk_match_sport FOREIGN KEY (sport_id) REFERENCES Sport(sport_id),
+    CONSTRAINT fk_match_home_team FOREIGN KEY (home_team_id) REFERENCES Team(team_id),
+    CONSTRAINT fk_match_away_team FOREIGN KEY (away_team_id) REFERENCES Team(team_id),
+    CONSTRAINT chk_teams_different CHECK (home_team_id != away_team_id)
+);
+
+-- DML: INSERT Sample Data
+
+-- Insert into League
+INSERT INTO League (league_id, name, start_date, end_date)
+VALUES (1, '2025 Basketball League', TO_DATE('2025-01-01', 'YYYY-MM-DD'), TO_DATE('2025-04-30', 'YYYY-MM-DD'));
+INSERT INTO League (league_id, name, start_date, end_date)
+VALUES (2, '2025 Football League', TO_DATE('2025-09-01', 'YYYY-MM-DD'), TO_DATE('2025-12-31', 'YYYY-MM-DD'));
+
+-- Insert into Sport
+INSERT INTO Sport (sport_id, name) VALUES (1, 'Basketball');
+INSERT INTO Sport (sport_id, name) VALUES (2, 'Football');
+
+-- Insert into Team
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (1, 'UCLA Bruins', 1, 1, 'West Campus');
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (2, 'USC Trojans', 1, 1, 'East Campus');
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (3, 'UCLA Wildcats', 2, 2, 'West Campus');
+
+-- Insert into Coach
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (1, 'John', 'Doe', 1, 1);
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (2, 'Jane', 'Smith', 1, 2);
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (3, 'Mike', 'Brown', 2, 3);
+
+-- Insert into Player
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (1, 'Alice', 'Johnson', 'S12345', 20, 1);
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (2, 'Bob', 'Williams', 'S12346', 19, 1);
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (3, 'Carol', 'Davis', 'S12347', 21, 2);
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (4, 'David', 'Clark', 'S12348', 22, 3);
+
+-- Insert into Match
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (1, 1, 1, 1, 2, TO_DATE('2025-02-01 15:00', 'YYYY-MM-DD HH24:MI'), 'Main Arena', 'Scheduled');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (2, 2, 2, 3, 1, TO_DATE('2025-10-01 13:00', 'YYYY-MM-DD HH24:MI'), 'Stadium', 'Completed');
+
+-- DML: UPDATE Statements
+
+-- Update league end date
+UPDATE League
+SET end_date = TO_DATE('2025-05-15', 'YYYY-MM-DD')
+WHERE league_id = 1;
+
+-- Update player age
+UPDATE Player
+SET age = 20
+WHERE student_id = 'S12347';
+
+-- DML: DELETE Statements
+
+-- Delete a player
+DELETE FROM Player
+WHERE student_id = 'S12348';
+
+-- Delete a cancelled match
+DELETE FROM Match
+WHERE status = 'Cancelled';
+
+-- DML: SELECT Queries
+
+-- Simple SELECT: Get all leagues
+SELECT league_id, name, start_date, end_date
+FROM League;
+
+-- SELECT with Special Operators: Players aged between 19 and 21
+SELECT first_name, last_name, age
+FROM Player
+WHERE age BETWEEN 19 AND 21;
+
+-- SELECT with LIKE: Teams with 'Bruins' in name
+SELECT name, home_campus
+FROM Team
+WHERE name LIKE '%Bruins%';
+
+-- SELECT with IN: Matches in specific venues
+SELECT match_id, venue, status
+FROM Match
+WHERE venue IN ('Main Arena', 'Stadium');
+
+-- SELECT with Aggregate Functions: Count players per team
+SELECT team_id, COUNT(*) AS player_count
+FROM Player
+GROUP BY team_id;
+
+-- SELECT with MAX: Oldest player
+SELECT MAX(age) AS max_age
+FROM Player;
+
+-- SELECT with AVG: Average player age per team
+SELECT team_id, AVG(age) AS avg_age
+FROM Player
+GROUP BY team_id;
+
+-- SELECT with GROUP BY: Number of matches per league
+SELECT league_id, COUNT(*) AS match_count
+FROM Match
+GROUP BY league_id
+HAVING COUNT(*) > 0;
+
+-- SELECT with Subquery: Teams in Basketball league
+SELECT name
+FROM Team
+WHERE league_id = (SELECT league_id FROM League WHERE name = '2025 Basketball League');
+
+-- SELECT with JOIN: Players and their team names
+SELECT p.first_name, p.last_name, t.name AS team_name
+FROM Player p
+JOIN Team t ON p.team_id = t.team_id;
+
+-- SELECT with Multiple JOINs: Match details with team and sport
+SELECT m.match_id, l.name AS league_name, s.name AS sport_name, t1.name AS home_team, t2.name AS away_team
+FROM Match m
+JOIN League l ON m.league_id = l.league_id
+JOIN Sport s ON m.sport_id = s.sport_id
+JOIN Team t1 ON m.home_team_id = t1.team_id
+JOIN Team t2 ON m.away_team_id = t2.team_id;
+
+-- Correlated Subquery: Players in teams coached by 'John Doe'
+SELECT p.first_name, p.last_name
+FROM Player p
+WHERE EXISTS (
+    SELECT 1
+    FROM Coach c
+    WHERE c.team_id = p.team_id
+    AND c.first_name = 'John' AND c.last_name = 'Doe'
+);
+
+-- SELECT with UNION: Combine players and coaches names
+SELECT first_name, last_name, 'Player' AS role
+FROM Player
+UNION
+SELECT first_name, last_name, 'Coach' AS role
+FROM Coach;
+
+-- SELECT with EXISTS: Leagues with at least one match
+SELECT l.name
+FROM League l
+WHERE EXISTS (
+    SELECT 1
+    FROM Match m
+    WHERE m.league_id = l.league_id
+);
+
+-- PL/SQL: Cursor
+DECLARE
+    CURSOR team_cursor IS
+        SELECT team_id, name
+        FROM Team
+        WHERE sport_id = 1; -- Basketball teams
+    v_team_id Team.team_id%TYPE;
+    v_team_name Team.name%TYPE;
+BEGIN
+    OPEN team_cursor;
+    LOOP
+        FETCH team_cursor INTO v_team_id, v_team_name;
+        EXIT WHEN team_cursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('Team ID: ' || v_team_id || ', Name: ' || v_team_name);
+    END LOOP;
+    CLOSE team_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error in cursor: ' || SQLERRM);
+END;
+/
+
+-- PL/SQL: Stored Function (Get number of players in a team)
+CREATE OR REPLACE FUNCTION get_player_count(p_team_id IN INTEGER)
+RETURN INTEGER IS
+    v_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM Player
+    WHERE team_id = p_team_id;
+    RETURN v_count;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0;
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Error in get_player_count: ' || SQLERRM);
+END;
+/
+
+-- Example usage of function
+SELECT team_id, name, get_player_count(team_id) AS player_count
+FROM Team;
+
+-- PL/SQL: Stored Procedure (Schedule a new match)
+CREATE OR REPLACE PROCEDURE schedule_match (
+    p_match_id IN INTEGER,
+    p_league_id IN INTEGER,
+    p_sport_id IN INTEGER,
+    p_home_team_id IN INTEGER,
+    p_away_team_id IN INTEGER,
+    p_match_date IN DATE,
+    p_venue IN VARCHAR2
+) IS
+BEGIN
+    INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+    VALUES (p_match_id, p_league_id, p_sport_id, p_home_team_id, p_away_team_id, p_match_date, p_venue, 'Scheduled');
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Match ' || p_match_id || ' scheduled successfully.');
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Match ID already exists.');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20003, 'Error scheduling match: ' || SQLERRM);
+END;
+/
+
+-- Example call to procedure
+EXEC schedule_match(3, 1, 1, 2, 1, TO_DATE('2025-02-15 14:00', 'YYYY-MM-DD HH24:MI'), 'Secondary Arena');
+
+-- PL/SQL: Trigger (Ensure coach sport matches team sport)
+CREATE OR REPLACE TRIGGER check_coach_sport
+BEFORE INSERT OR UPDATE ON Coach
+FOR EACH ROW
+DECLARE
+    v_team_sport_id Sport.sport_id%TYPE;
+BEGIN
+    SELECT sport_id INTO v_team_sport_id
+    FROM Team
+    WHERE team_id = :NEW.team_id;
+    
+    IF :NEW.sport_id != v_team_sport_id THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Coach sport must match team sport.');
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20005, 'Invalid team ID.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20006, 'Error in trigger: ' || SQLERRM);
+END;
+/
+
+-- Example to test trigger (will fail if sport_id mismatch)
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (4, 'Test', 'Coach', 2, 1); -- Should fail as team 1 is Basketball (sport_id 1)
+
+
+-- INSERT Statements to Expand the Sports League Management System Database
+
+-- 1. Add New Sports
+INSERT INTO Sport (sport_id, name) VALUES (3, 'Soccer');
+INSERT INTO Sport (sport_id, name) VALUES (4, 'Volleyball');
+
+-- 2. Add New Leagues
+INSERT INTO League (league_id, name, start_date, end_date)
+VALUES (3, '2025 Soccer League', TO_DATE('2025-03-01', 'YYYY-MM-DD'), TO_DATE('2025-06-30', 'YYYY-MM-DD'));
+INSERT INTO League (league_id, name, start_date, end_date)
+VALUES (4, '2025 Volleyball League', TO_DATE('2025-02-01', 'YYYY-MM-DD'), TO_DATE('2025-05-31', 'YYYY-MM-DD'));
+
+-- 3. Add New Teams
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (4, 'Stanford Cardinals', 3, 3, 'North Campus');
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (5, 'Cal Bears', 3, 3, 'South Campus');
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (6, 'UCLA Eagles', 4, 4, 'West Campus');
+INSERT INTO Team (team_id, name, sport_id, league_id, home_campus)
+VALUES (7, 'USC Spartans', 4, 4, 'East Campus');
+
+-- 4. Add New Coaches
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (4, 'Sarah', 'Wilson', 3, 4); -- Stanford Cardinals (Soccer)
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (5, 'Tom', 'Lee', 3, 5); -- Cal Bears (Soccer)
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (6, 'Emily', 'Garcia', 4, 6); -- UCLA Eagles (Volleyball)
+INSERT INTO Coach (coach_id, first_name, last_name, sport_id, team_id)
+VALUES (7, 'Mark', 'Taylor', 4, 7); -- USC Spartans (Volleyball)
+
+-- 5. Add New Players (~20 entries, distributed across teams)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (5, 'Emma', 'Rodriguez', 'S12349', 18, 1); -- UCLA Bruins (Basketball)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (6, 'Liam', 'Martinez', 'S12350', 20, 1); -- UCLA Bruins
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (7, 'Olivia', 'Hernandez', 'S12351', 19, 1); -- UCLA Bruins
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (8, 'Noah', 'Lopez', 'S12352', 21, 2); -- USC Trojans (Basketball)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (9, 'Ava', 'Gonzalez', 'S12353', 20, 2); -- USC Trojans
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (10, 'Ethan', 'Perez', 'S12354', 22, 2); -- USC Trojans
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (11, 'Sophia', 'Sanchez', 'S12355', 19, 3); -- UCLA Wildcats (Football)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (12, 'Mason', 'Ramirez', 'S12356', 20, 3); -- UCLA Wildcats
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (13, 'Isabella', 'Torres', 'S12357', 21, 3); -- UCLA Wildcats
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (14, 'Jacob', 'Flores', 'S12358', 18, 4); -- Stanford Cardinals (Soccer)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (15, 'Mia', 'Rivera', 'S12359', 19, 4); -- Stanford Cardinals
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (16, 'William', 'Gomez', 'S12360', 20, 4); -- Stanford Cardinals
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (17, 'Charlotte', 'Diaz', 'S12361', 21, 5); -- Cal Bears (Soccer)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (18, 'James', 'Reyes', 'S12362', 22, 5); -- Cal Bears
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (19, 'Amelia', 'Cruz', 'S12363', 19, 5); -- Cal Bears
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (20, 'Benjamin', 'Morales', 'S12364', 20, 6); -- UCLA Eagles (Volleyball)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (21, 'Harper', 'Ortiz', 'S12365', 18, 6); -- UCLA Eagles
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (22, 'Lucas', 'Gutierrez', 'S12366', 21, 6); -- UCLA Eagles
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (23, 'Evelyn', 'Ramos', 'S12367', 20, 7); -- USC Spartans (Volleyball)
+INSERT INTO Player (player_id, first_name, last_name, student_id, age, team_id)
+VALUES (24, 'Henry', 'Mendoza', 'S12368', 19, 7); -- USC Spartans
+
+-- 6. Add New Matches
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (3, 3, 3, 4, 5, TO_DATE('2025-03-15 14:00', 'YYYY-MM-DD HH24:MI'), 'Soccer Field A', 'Scheduled');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (4, 3, 3, 5, 4, TO_DATE('2025-04-01 16:00', 'YYYY-MM-DD HH24:MI'), 'Soccer Field B', 'Scheduled');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (5, 4, 4, 6, 7, TO_DATE('2025-02-20 18:00', 'YYYY-MM-DD HH24:MI'), 'Volleyball Court 1', 'Scheduled');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (6, 4, 4, 7, 6, TO_DATE('2025-03-10 17:00', 'YYYY-MM-DD HH24:MI'), 'Volleyball Court 2', 'Completed');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (7, 1, 1, 2, 1, TO_DATE('2025-02-15 15:00', 'YYYY-MM-DD HH24:MI'), 'Main Arena', 'Scheduled');
+INSERT INTO Match (match_id, league_id, sport_id, home_team_id, away_team_id, match_date, venue, status)
+VALUES (8, 2, 2, 3, 1, TO_DATE('2025-10-15 13:00', 'YYYY-MM-DD HH24:MI'), 'Stadium', 'Cancelled');
+
+
+-- Query: List teams in the 2025 Basketball League with at least one player under 20,
+-- along with their coach’s full name, league name, and number of matches played.
+
+SELECT 
+    t.name AS team_name,
+    l.name AS league_name,
+    c.first_name || ' ' || c.last_name AS coach_name,
+    COUNT(DISTINCT m.match_id) AS match_count
+FROM 
+    Team t
+    JOIN League l ON t.league_id = l.league_id
+    JOIN Coach c ON t.team_id = c.team_id
+    LEFT JOIN Match m ON t.team_id IN (m.home_team_id, m.away_team_id)
+WHERE 
+    t.league_id = (
+        SELECT league_id 
+        FROM League 
+        WHERE name = '2025 Basketball League'
+    )
+    AND t.team_id IN (
+        SELECT team_id 
+        FROM Player 
+        WHERE age < 20
+    )
+GROUP BY 
+    t.name, l.name, c.first_name, c.last_name
+ORDER BY 
+    t.name;
+
+
+
+-- updates in "Match" table, and updating the entries accordingly
+-- 1. Alter Match Table to Add winner_team_id
+ALTER TABLE Match
+ADD winner_team_id NUMBER;
+
+-- Add Foreign Key Constraint
+ALTER TABLE Match
+ADD CONSTRAINT fk_match_winner_team
+FOREIGN KEY (winner_team_id) REFERENCES Team(team_id);
+
+-- Add CHECK Constraint to Ensure Valid Winner
+ALTER TABLE Match
+ADD CONSTRAINT check_winner_valid
+CHECK (
+    winner_team_id IS NULL OR
+    (winner_team_id IN (home_team_id, away_team_id) AND status = 'Completed')
+);
+
+-- 2. Update Existing Matches to Set Winners for Completed Matches
+UPDATE Match
+SET winner_team_id = NULL
+WHERE match_id IN (1, 3, 4, 5, 7, 8); -- Scheduled or Cancelled
+
+UPDATE Match
+SET winner_team_id = 3
+WHERE match_id = 2; -- Match 2: UCLA Wildcats (team_id=3) win
+
+UPDATE Match
+SET winner_team_id = 7
+WHERE match_id = 6; -- Match 6: USC Spartans (team_id=7) win
+
+-- 3. Sample Query: Display Teams, Matches Played, Wins, and Match Winner Status
+SELECT 
+    t.name AS team_name,
+    l.name AS league_name,
+    COUNT(DISTINCT m.match_id) AS matches_played,
+    (
+        SELECT COUNT(*) 
+        FROM Match m2 
+        WHERE m2.winner_team_id = t.team_id 
+        AND m2.status = 'Completed'
+    ) AS win_count,
+    m.match_id,
+    CASE 
+        WHEN m.status = 'Completed' AND m.winner_team_id IS NOT NULL THEN 
+            (SELECT name FROM Team t2 WHERE t2.team_id = m.winner_team_id)
+        WHEN m.status = 'Scheduled' THEN 'Pending'
+        WHEN m.status = 'Cancelled' THEN 'NA'
+        ELSE 'Unknown'
+    END AS winner_status
+FROM 
+    Team t
+    JOIN League l ON t.league_id = l.league_id
+    LEFT JOIN Match m ON t.team_id IN (m.home_team_id, m.away_team_id)
+WHERE 
+    t.team_id IN (
+        SELECT DISTINCT team_id 
+        FROM Player 
+        WHERE age < 20
+    )
+GROUP BY 
+    t.name, l.name, t.team_id, m.match_id, m.status, m.winner_team_id
+ORDER BY 
+    t.name, m.match_id;
