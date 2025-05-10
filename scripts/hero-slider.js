@@ -1,24 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // fetch('/api/completed-matches')
-    // .then(res => res.json())
-    // .then(data => {
-        const bgcolors = {1: '#03fcc6', 2: '#ff4f72', 3: '#746af7', 4: '#f0b873'}
-        const data = [
-            { team1: "Wolves", score1: 2, score2: 2, team2: "Bulls", winner: "Draw", sportID: 3 },
-            { team1: "Lions", score1: 3, score2: 1, team2: "Tigers", winner: "Lions", sportID: 1 },
-            { team1: "Eagles", score1: 0, score2: 2, team2: "Sharks", winner: "Sharks", sportID: 2 },
-          ];
-
+    fetch('/api/matches')
+    .then(res => res.json())
+    .then(data => {
         const container = document.getElementById('matches-container');
+        const cardContainer = document.querySelector('.scheduled-matches .card-container');
 
         data.forEach(match => {
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            slide.innerHTML =  `<div>
-                                    ${match.team1} vs ${match.team2}
-                                </div>
-                                <div> Winner: ${match.winner} </div>`;
-            container.appendChild(slide);
+            if(toLowerCase(match.status) === 'completed'){
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML =  `<div>
+                                        ${match.team1} vs ${match.team2}
+                                    </div>
+                                    <div> Winner: ${match.winner} </div>`;
+                container.appendChild(slide);
+            }
+            else if(toLowerCase(match.status) === ''){
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>${match.home_team_name} vs ${match.away_team_name}</h3>
+                    <p>${match.match_date}</p>
+                    <p>${match.venue}</p>
+                `;
+                cardContainer.appendChild(card);
+                cardContainer.parentElement.getElementsByTagName('h2').stlye.display = 'block';
+            }
         });
 
         new Swiper(".mySwiper", {
@@ -31,4 +38,4 @@ document.addEventListener('DOMContentLoaded', () => {
             allowTouchMove: false,
         });
     });
-// });
+});

@@ -36,13 +36,30 @@ nav ul{
 .hero{
     overflow: visible;
     width: 100%;
-    height: 50vh;
+    /* height: 50vh; */
+    height: fit-content;
     background: #f8f8f8;
     /* padding: 10px 0; */
 
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
+    align-items: center;
+    text-align: center;
+    
+    position: relative;
+}
+.hero .card-container{
+    min-width: 80%;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 1rem;
+}
+.hero .card{
+    min-width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 .swiper{
@@ -61,19 +78,15 @@ nav ul{
     flex-direction: column;
     justify-content: center;
 }
-#leagues .card-container{
+
+.card-container{
     display: flex;
-    /* justify-content: center; */
     align-items: center;
     flex-wrap: wrap;
-    /* gap: 1rem; */
-
-    margin: 1rem;
+    /* margin: 1rem; */
 }
-.league-card{
-    height: 100px;
-    width: 22.5%;
-    margin: 1rem;
+.card{
+    margin: 0.75rem;
 
     display: flex;
     justify-content: center;
@@ -81,12 +94,21 @@ nav ul{
 
     background-color: #f8f8f8;
 }
-#leagues li > div{
-    display: flex;
-    gap: 1rem;
+
+.league-card{
+    height: 100px;
+    width: 22.5%;
 }
-#leagues li > div > div:first-child{
-    position: relative;
-    /* background-color: aqua; */
-    width: 45%;
+.team-card{
+    height: 75px;
+    width: 20%;
+}
+
+table{
+    width: 100%;
+    text-align: left;
+}
+
+#teams table{
+    width: 30%;
 }
