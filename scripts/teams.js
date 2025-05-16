@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/teams')
+    fetch('http://localhost:3002/api/teams')
       .then(res => res.json())
       .then(data => {
         const container = document.querySelector('#teams .card-container');
@@ -16,16 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
   
           card.addEventListener('click', () => {
+            teamsInfoList.innerHTML = '';
+            document.querySelector('#teams > h3').innerText = '';
             if (activeTeamId === team.team_id) {
               // Same team clicked again → toggle off
-              teamsInfoList.innerHTML = '';
               activeLeagueId = null;
               return;
             }
   
             document.querySelector('#teams .loading-message').style.display = 'block';
             // New team clicked → load its team info
-            fetch(`/api/teams/${team.team_id}/team_info`)
+            fetch(`http://localhost:3002/api/teams/team_info?team_id=${team.team_id}`)
             .then(res => res.json())
             .then(members => {
                 document.querySelector('#teams .loading-message').style.display = 'none';
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <th>Age</th>
                   </tr>
                 </thead>
-                `; // Clear previous team info list
+                `;
                 const tbody = document.createElement('tbody');
                 members.forEach(member => {
                   const tr = document.createElement('tr');
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
                 teamsInfoList.appendChild(tbody);
                 activeTeamId = team.team_id; // Set new active team
+                document.querySelector('#teams > h3').innerText = team.name;
               });
           });
   

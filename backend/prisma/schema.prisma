@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model League {
+  league_id Int      @id
+  name      String   @db.VarChar(100)
+  start_date DateTime
+  end_date   DateTime
+  teams     Team[]
+  matches   Match[]
+
+ 
+}
+
+model Sport {
+  sport_id Int    @id
+  name     String @unique @db.VarChar(50)
+  teams    Team[]
+  coaches  Coach[]
+  matches  Match[]
+}
+
+model Team {
+  team_id     Int     @id
+  name        String  @db.VarChar(100)
+  sport_id    Int
+  league_id   Int
+  home_campus String? @db.VarChar(100)
+  sport       Sport   @relation(fields: [sport_id], references: [sport_id])
+  league      League  @relation(fields: [league_id], references: [league_id])
+  coach       Coach?
+  players     Player[]
+  homeMatches Match[] @relation("HomeMatches")
+  awayMatches Match[] @relation("AwayMatches")
+
+  @@unique([name, league_id])
+}
+
+model Coach {
+  coach_id  Int    @id
+  first_name String @db.VarChar(50)
+  last_name  String @db.VarChar(50)
+  sport_id   Int
+  team_id    Int    @unique
+  sport      Sport  @relation(fields: [sport_id], references: [sport_id])
+  team       Team   @relation(fields: [team_id], references: [team_id])
+}
+
+model Player {
+  player_id  Int    @id
+  first_name String @db.VarChar(50)
+  last_name  String @db.VarChar(50)
+  student_id String @unique @db.VarChar(20)
+  age        Int
+  team_id    Int
+  team       Team   @relation(fields: [team_id], references: [team_id])
+
+  
+}
+
+model Match {
+  match_id     Int    @id
+  league_id    Int
+  sport_id     Int
+  home_team_id Int
+  away_team_id Int
+  match_date   DateTime
+  venue        String @db.VarChar(100)
+  status       String
+
+  league       League @relation(fields: [league_id], references: [league_id])
+  sport        Sport  @relation(fields: [sport_id], references: [sport_id])
+  home_team    Team   @relation("HomeMatches", fields: [home_team_id], references: [team_id])
+  away_team    Team   @relation("AwayMatches", fields: [away_team_id], references: [team_id])
+
+  
+}

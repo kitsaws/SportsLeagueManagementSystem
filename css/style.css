@@ -64,6 +64,7 @@ nav ul{
 }
 .swiper{
     width: 100%;
+    margin: 1rem;
 }
 .swiper-slide {
     text-align: center;
@@ -93,8 +94,12 @@ nav ul{
     align-items: center;
 
     background-color: #f8f8f8;
-}
 
+    cursor: pointer;
+}
+.hero .card{
+    cursor: default;
+}
 .league-card{
     height: 100px;
     width: 22.5%;
@@ -102,6 +107,10 @@ nav ul{
 .team-card{
     height: 75px;
     width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 table{

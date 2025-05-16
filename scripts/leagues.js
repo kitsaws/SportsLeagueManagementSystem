@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/leagues')
+    fetch('http://localhost:3002/api/leagues')
       .then(res => res.json())
       .then(data => {
+        // console.log(data);
         const container = document.querySelector('#leagues .card-container');
         const matchList = document.querySelector('#leagues table');
   
@@ -13,16 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
           card.innerHTML = `<h3>${league.name}</h3>`;
   
           card.addEventListener('click', () => {
+            matchList.innerHTML = '';
             if (activeLeagueId === league.league_id) {
               // Same league clicked again → toggle off
-              matchList.innerHTML = '';
               activeLeagueId = null;
               return;
             }
   
             // New league clicked → load its matches
             document.querySelector('#leagues .loading-message').style.display = 'block';
-            fetch(`/api/leagues/${league.league_id}/matches`)
+            fetch(`http://localhost:3002/api/matches?league_id=${league.league_id}`)
             .then(res => res.json())
             .then(matches => {
                 document.querySelector('#leagues .loading-message').style.display = 'none';
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 matches.forEach(match => {
                   const tr = document.createElement('tr');
                   tr.innerHTML = `
-                    <td>${match.home_team_name} vs ${match.away_team_name}</td>
+                    <td>${match.t1_name} vs ${match.t2_name}</td>
                     <td>${match.status}</td>
                     <td>${match.match_date}</td>
                     <td>${match.venue}</td>

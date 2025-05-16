@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/teams')
+    fetch('http://localhost:3002/api/teams')
      .then(res => res.json())
      .then(data =>{
             const filterDropDown = document.getElementById('team-filter');
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
 
-    fetch('/api/matches')
+    fetch('http://localhost:3002/api/matches')
         .then(res => res.json())
         .then(data => {
             const venueDropDown = document.getElementById('venue-filter');
@@ -35,35 +35,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 team: document.getElementById('team-filter'),
                 status: document.getElementById('status-filter'),
                 date: document.getElementById('date-filter'),
+                venue: document.getElementById('venue-filter')
             };
 
             const filterValues = {
                 team: '',
                 status: '',
                 date: '',
+                venue: '',
             };
-
-            let visibleMatches = 0;
 
             function renderTable() {
                 tbody.innerHTML = ''; // Clear old rows
                 data.forEach(match => {
+                    match.match_date = match.match_date.split('T')[0];
                     if (
-                        (filterValues.team === '' || filterValues.team === match.home_team_name || filterValues.team === match.away_team_name) &&
-                        (filterValues.status === '' || filterValues.status === match.status) &&
-                        (filterValues.date === '' || filterValues.date === match.match_date)
+                        (filterValues.team === '' || filterValues.team === match.t1_name || filterValues.team === match.t2_name)
+                        && (filterValues.status === '' || filterValues.status === match.status) 
+                        && (filterValues.date === '' || filterValues.date === match.match_date)
+                        && (filterValues.venue === '' || filterValues.venue === match.venue)
                     ) {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${match.home_team_name} vs ${match.away_team_name}</td>
+                            <td>${match.t1_name} vs ${match.t2_name}</td>
                             <td>${match.status}</td>
                             <td>${match.match_date}</td>
+                            <td>${match.venue}</td>
                         `;
                         tbody.appendChild(tr);
-                        visibleMatches++;
                     }
                 });
-                if(visibleMatches === 0){
+                if(tbody.innerHTML === ''){
                     document.querySelector('#matches .empty-message').style.display = 'block';
                 }else{
                     document.querySelector('#matches .empty-message').style.display = 'none';
